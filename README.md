@@ -177,12 +177,6 @@ python -m pytest
 ```
 The dev file also lists EasyOCR, which is large and only needed for OCR. To skip it, install just `pytest pytest-asyncio httpx aiosqlite`.
 
-**Try the app from the terminal**
-
-Use this instead of the browser. It needs `httpx` from the dev packages, and the app must be running:
-```
-python tests/cli.py
-```
 
 ---
 
@@ -213,23 +207,37 @@ Everything is in `.env`, and the app needs a restart after any change. The ones 
 ## Evidence
 
 **Document ingestion**
-
-> [Screenshot placeholder] Caption: Uploading a document with `recursive` chunking and the 201 response showing the chunk count.
-
-> [Screenshot placeholder] Caption: Uploading a document with `semantic` chunking and the 201 response showing the chunk count.
+![alt text](image.png)
+![alt text](image-1.png)
+>  Caption: Uploading a document with `recursive` chunking and the 201 response showing the chunk count.
+![alt text](image-2.png)
+![alt text](image-3.png)
+>  Caption: Uploading a document with `semantic` chunking and the 201 response showing the chunk count.
 
 **Chat**
-
-> [Screenshot placeholder] Caption: A sample question answered from the document, with its source references.
-
-> [Screenshot placeholder] Caption: The uvicorn terminal log showing the reranker scores for that question, with the best chunk above the relevance cut-off.
+![alt text](image-4.png)
+![alt text](image-5.png)
+>  Caption: A sample question answered from the document, with its source references.
+![alt text](image-6.png)
+> Caption: The uvicorn terminal log showing the reranker scores for that question, with the best chunk above the relevance cut-off.
 
 **Interview booking**
+![alt text](image-7.png)
+![alt text](image-8.png)
 
-> [Screenshot placeholder] Caption: A booking completed over several messages, ending with `booking_status: completed`.
+booking follow-up:
 
-> [Screenshot placeholder] Caption: The saved booking in the PostgreSQL `bookings` table.
+![alt text](image-9.png)
+![alt text](image-10.png)
+
+booking reservation done:
+![alt text](image-11.png)
+![alt text](image-12.png)
+>  Caption: A booking completed over several messages, ending with `booking_status: completed`.
+![alt text](image-13.png)
+> Caption: The saved booking in the PostgreSQL `bookings` table.
 
 **Automated tests**
 
-> [Screenshot placeholder] Caption: Output of `python -m pytest` with all tests passing.
+![alt text](image-14.png)
+>  Caption: Output of `python -m pytest` with all tests passing.
