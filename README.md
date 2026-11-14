@@ -207,37 +207,53 @@ Everything is in `.env`, and the app needs a restart after any change. The ones 
 ## Evidence
 
 **Document ingestion**
-![alt text](image.png)
-![alt text](image-1.png)
->  Caption: Uploading a document with `recursive` chunking and the 201 response showing the chunk count.
-![alt text](image-2.png)
-![alt text](image-3.png)
->  Caption: Uploading a document with `semantic` chunking and the 201 response showing the chunk count.
+<img width="940" height="220" alt="image" src="https://github.com/user-attachments/assets/3c98282a-d36f-4162-943c-f971c704dadd" />
+<img width="940" height="232" alt="image" src="https://github.com/user-attachments/assets/a908a619-0a34-4bcc-add1-4744ac7ca68c" />
+
+
+ Caption: Uploading a document with `recursive` chunking and the 201 response showing the chunk count.
+<img width="940" height="584" alt="image" src="https://github.com/user-attachments/assets/547104e1-d7cb-4228-9b35-44d12f1e9759" />
+
+<img width="940" height="531" alt="image" src="https://github.com/user-attachments/assets/1400f98b-4df9-42d6-b450-0d6514ba3965" />
+
+ Caption: Uploading a document with `semantic` chunking and the 201 response showing the chunk count.
 
 **Chat**
-![alt text](image-4.png)
-![alt text](image-5.png)
->  Caption: A sample question answered from the document, with its source references.
-![alt text](image-6.png)
-> Caption: The uvicorn terminal log showing the reranker scores for that question, with the best chunk above the relevance cut-off.
+
+<img width="754" height="751" alt="image" src="https://github.com/user-attachments/assets/3ed5a9ec-d89a-4675-8e5e-5278e3bf6951" />
+<img width="940" height="245" alt="image" src="https://github.com/user-attachments/assets/c30b386d-f897-4e90-86e2-9da35abae8ba" />
+
+ Caption: A sample question answered from the document, with its source references.
+
+<img width="940" height="216" alt="image" src="https://github.com/user-attachments/assets/7c89b5eb-c826-4d2f-9019-7b8ef70dd147" />
+
+ Caption: The uvicorn terminal log showing the reranker scores for that question, with the best chunk above the relevance cut-off.
 
 **Interview booking**
-![alt text](image-7.png)
-![alt text](image-8.png)
+
+<img width="653" height="760" alt="image" src="https://github.com/user-attachments/assets/ce6f8643-9555-4bb8-9bd2-c2f2e8fc8e02" />
+<img width="940" height="589" alt="image" src="https://github.com/user-attachments/assets/ed0ebf87-88cb-4b37-9cb5-fc6cd5df8767" />
 
 booking follow-up:
 
-![alt text](image-9.png)
-![alt text](image-10.png)
+<img width="940" height="326" alt="image" src="https://github.com/user-attachments/assets/4941a560-4c7d-4707-a788-83c9965445ee" />
+<img width="940" height="616" alt="image" src="https://github.com/user-attachments/assets/bb78ff0c-d5f5-41fd-a8db-1dfc3af4ef54" />
+
 
 booking reservation done:
-![alt text](image-11.png)
-![alt text](image-12.png)
->  Caption: A booking completed over several messages, ending with `booking_status: completed`.
-![alt text](image-13.png)
-> Caption: The saved booking in the PostgreSQL `bookings` table.
+
+<img width="940" height="248" alt="image" src="https://github.com/user-attachments/assets/c6e542fc-c2af-479d-b498-c0c36b33d833" />
+<img width="940" height="519" alt="image" src="https://github.com/user-attachments/assets/b041311d-3d97-4305-a97a-3de37bf7b2a7" />
+
+ Caption: A booking completed over several messages, ending with `booking_status: completed`.
+
+
+<img width="940" height="125" alt="image" src="https://github.com/user-attachments/assets/74c3e387-b7af-439e-a6ec-e3636d01d946" />
+
+ Caption: The saved booking in the PostgreSQL `bookings` table.
 
 **Automated tests**
 
-![alt text](image-14.png)
->  Caption: Output of `python -m pytest` with all tests passing.
+<img width="940" height="271" alt="image" src="https://github.com/user-attachments/assets/919f2fa7-8636-47c8-bd84-7b8883a4af1b" />
+
+ Caption: Output of `python -m pytest` with all tests passing.
