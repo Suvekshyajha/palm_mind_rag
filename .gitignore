@@ -1,0 +1,17 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Secrets
+.env
+
+# Uploaded files (keep the folder, not the contents)
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+# Editor and OS
+.vscode/
+.DS_Store
