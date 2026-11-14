@@ -7,7 +7,6 @@ from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.config import get_settings
-from app.db import Base
 from app.routes import chat, ingestion
 from app.services.embedder import Embedder
 from app.services.llm import LLM
@@ -22,13 +21,11 @@ from app.services.vector_store import VectorStore
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Create the shared resources once at startup and close them at shutdown."""
     settings = get_settings()
+    if not settings.groq_api_key or not settings.groq_model:
+        raise RuntimeError("Set GROQ_API_KEY and GROQ_MODEL in your .env file before starting the app.")
 
     engine = create_async_engine(settings.database_url)
     app.state.session_factory = async_sessionmaker(engine, expire_on_commit=False)
-
-    # Create the documents and bookings tables if they do not exist yet.
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
 
     # Loading the models is slow, so it happens once here (in threads, not per request).
     embedder = await asyncio.to_thread(Embedder, settings.embedding_model)

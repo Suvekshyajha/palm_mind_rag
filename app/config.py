@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     groq_model: str = ""
 
+    # Security (leave api_key empty to disable the X-API-Key check)
+    api_key: str = ""
+
+    # Booking
+    timezone: str = "UTC"
+
     # Databases
     database_url: str
     redis_url: str

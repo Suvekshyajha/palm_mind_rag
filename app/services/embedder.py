@@ -1,6 +1,8 @@
 import asyncio
+from typing import TYPE_CHECKING
 
-from sentence_transformers import SentenceTransformer
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 
 class Embedder:
@@ -10,12 +12,15 @@ class Embedder:
     QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 
     def __init__(self, model_name: str) -> None:
-        self._model = SentenceTransformer(model_name)
+        # Imported here so tests and tooling do not need to load PyTorch.
+        from sentence_transformers import SentenceTransformer
+
+        self._model: SentenceTransformer = SentenceTransformer(model_name)
         self.dimension: int = self._model.get_sentence_embedding_dimension() or 768
 
     def _encode(self, texts: list[str]) -> list[list[float]]:
         # Normalised vectors make cosine similarity work properly.
-        return self._model.encode(texts, normalize_embeddings=True, batch_size=32).tolist()
+        return self._model.encode(texts, normalize_embeddings=True, batch_size=32).tolist()  # type: ignore[no-any-return]
 
     async def embed_documents(self, texts: list[str]) -> list[list[float]]:
         # The model is heavy, so run it in a thread to keep the API responsive.

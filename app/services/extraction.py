@@ -1,9 +1,13 @@
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pymupdf
 from docx import Document as DocxDocument
+
+if TYPE_CHECKING:
+    import easyocr
 
 
 @dataclass
@@ -17,14 +21,15 @@ def extract_pages(path: Path, file_type: str, enable_ocr: bool) -> list[Page]:
     if file_type == "pdf":
         return _read_pdf(path, enable_ocr)
     if file_type == "docx":
-        paragraphs = [p.text for p in DocxDocument(str(path)).paragraphs]
+        document = DocxDocument(str(path))
+        paragraphs = [p.text for p in document.paragraphs]
         return [Page(None, "\n".join(paragraphs))]
     return [Page(None, path.read_text(encoding="utf-8", errors="replace"))]
 
 
 def _read_pdf(path: Path, enable_ocr: bool) -> list[Page]:
     pages: list[Page] = []
-    with pymupdf.open(path) as pdf:
+    with pymupdf.open(path) as pdf:  # type: ignore[no-untyped-call, unused-ignore]
         for number, page in enumerate(pdf, start=1):
             text = page.get_text()
             # A page with no text is probably a scan, so try OCR if it is turned on.
@@ -35,7 +40,7 @@ def _read_pdf(path: Path, enable_ocr: bool) -> list[Page]:
 
 
 @lru_cache(maxsize=1)
-def _get_ocr_reader():  # loaded only when OCR is actually needed
+def _get_ocr_reader() -> "easyocr.Reader":  # loaded only when OCR is actually needed
     import easyocr
 
     return easyocr.Reader(["en"], gpu=False)

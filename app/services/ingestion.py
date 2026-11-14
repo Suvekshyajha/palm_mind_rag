@@ -16,6 +16,7 @@ from app.services.embedder import Embedder
 from app.services.extraction import Page, extract_pages
 from app.services.retrieval import BM25Index
 from app.services.vector_store import VectorStore
+from app.typedefs import ChunkPayload
 
 ALLOWED_TYPES = {".pdf": "pdf", ".txt": "txt", ".docx": "docx"}
 
@@ -64,7 +65,7 @@ async def ingest_document(
     # Keep the original file on disk under a unique name.
     document_id = str(uuid.uuid4())
     file_path = Path(settings.upload_dir) / f"{document_id}.{file_type}"
-    file_path.write_bytes(data)
+    await asyncio.to_thread(file_path.write_bytes, data)
 
     try:
         try:
@@ -79,15 +80,15 @@ async def ingest_document(
 
         vectors = await embedder.embed_documents([chunk.text for chunk in chunks])
         payloads = [
-            {
-                "document_id": document_id,
-                "chunk_id": str(uuid.uuid4()),
-                "chunk_index": chunk.index,
-                "source": filename,
-                "page": chunk.page,
-                "chunking_strategy": strategy.value,
-                "text": chunk.text,
-            }
+            ChunkPayload(
+                document_id=document_id,
+                chunk_id=str(uuid.uuid4()),
+                chunk_index=chunk.index,
+                source=filename,
+                page=chunk.page,
+                chunking_strategy=strategy.value,
+                text=chunk.text,
+            )
             for chunk in chunks
         ]
         await vector_store.add_chunks(payloads, vectors)
@@ -113,8 +114,8 @@ async def ingest_document(
             await vector_store.delete_document(document_id)
         raise
 
-    # Make the new chunks searchable by BM25.
-    await bm25.rebuild(vector_store)
+    # Make the new chunks searchable by BM25 (in memory, Qdrant is not read again).
+    await bm25.add(payloads)
 
     return IngestionResponse(
         document_id=document_id,

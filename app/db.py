@@ -1,12 +1,17 @@
 from datetime import date, datetime, time
 
-from sqlalchemy import Date, DateTime, Integer, String, Time, func
+from sqlalchemy import Date, DateTime, Integer, String, Time, UniqueConstraint, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
     pass
+
+
+class SlotTakenError(Exception):
+    """Another booking already uses this date and time."""
 
 
 class Document(Base):
@@ -28,6 +33,7 @@ class Booking(Base):
     """One row per completed interview booking (used in part 2)."""
 
     __tablename__ = "bookings"
+    __table_args__ = (UniqueConstraint("interview_date", "interview_time", name="uq_booking_slot"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255))
@@ -43,5 +49,10 @@ async def save_document(session: AsyncSession, document: Document) -> None:
 
 
 async def save_booking(session: AsyncSession, booking: Booking) -> None:
+    """Save a booking. Raises SlotTakenError if the date and time are already booked."""
     session.add(booking)
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError as error:
+        await session.rollback()
+        raise SlotTakenError from error

@@ -1,7 +1,8 @@
+import secrets
 from collections.abc import AsyncIterator
 from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
@@ -19,23 +20,37 @@ async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
 
 
 def get_embedder(request: Request) -> Embedder:
-    return request.app.state.embedder
+    embedder: Embedder = request.app.state.embedder
+    return embedder
 
 
 def get_vector_store(request: Request) -> VectorStore:
-    return request.app.state.vector_store
+    vector_store: VectorStore = request.app.state.vector_store
+    return vector_store
 
 
 def get_bm25(request: Request) -> BM25Index:
-    return request.app.state.bm25
+    bm25: BM25Index = request.app.state.bm25
+    return bm25
 
 
 def get_memory(request: Request) -> Memory:
-    return request.app.state.memory
+    memory: Memory = request.app.state.memory
+    return memory
 
 
 def get_rag(request: Request) -> RagResources:
-    return request.app.state.rag
+    rag: RagResources = request.app.state.rag
+    return rag
+
+
+async def require_api_key(
+    settings: Annotated[Settings, Depends(get_settings)],
+    x_api_key: Annotated[str | None, Header()] = None,
+) -> None:
+    """If API_KEY is set in .env, every request must send it in the X-API-Key header."""
+    if settings.api_key and not secrets.compare_digest(x_api_key or "", settings.api_key):
+        raise HTTPException(status_code=401, detail="Missing or wrong X-API-Key header.")
 
 
 # Short names the routes use as type hints.

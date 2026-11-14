@@ -13,7 +13,7 @@ SEPARATORS = ["\n\n", "\n", ". ", " "]
 
 
 @dataclass
-class Chunk:
+class TextChunk:
     text: str
     index: int
     page: int | None
@@ -119,14 +119,14 @@ async def semantic_chunks(text: str, embedder: Embedder, settings: Settings) -> 
 # ---------------- Entry point ----------------
 async def chunk_pages(
     pages: list[Page], strategy: ChunkingStrategy, settings: Settings, embedder: Embedder
-) -> list[Chunk]:
+) -> list[TextChunk]:
     """Chunk each page on its own so every chunk keeps its page number."""
-    chunks: list[Chunk] = []
+    chunks: list[TextChunk] = []
     for page in pages:
         if strategy == ChunkingStrategy.SEMANTIC:
             texts = await semantic_chunks(page.text, embedder, settings)
         else:
             texts = recursive_chunks(page.text, settings.recursive_chunk_size, settings.recursive_chunk_overlap)
         for text in texts:
-            chunks.append(Chunk(text=text, index=len(chunks), page=page.number))
+            chunks.append(TextChunk(text=text, index=len(chunks), page=page.number))
     return chunks

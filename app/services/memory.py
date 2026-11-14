@@ -1,9 +1,10 @@
 import json
+from typing import Any, cast
 
 import redis.asyncio as redis
 
 from app.config import Settings
-from app.schemas import ChatMessage
+from app.typedefs import ChatMessage
 
 
 class Memory:
@@ -15,29 +16,39 @@ class Memory:
         self._chat_ttl = settings.chat_ttl_seconds
         self._booking_ttl = settings.booking_ttl_seconds
 
+    # ---- sessions ----
+    async def session_exists(self, session_id: str) -> bool:
+        """True if this session already has a chat or an unfinished booking."""
+        return bool(await self._redis.exists(f"chat:{session_id}", f"booking:{session_id}"))
+
     # ---- chat history ----
     async def get_history(self, session_id: str, limit: int) -> list[ChatMessage]:
         """The last `limit` messages, oldest first."""
         raw = await self._redis.lrange(f"chat:{session_id}", -limit, -1)
-        return [json.loads(item) for item in raw]
+        return [cast(ChatMessage, json.loads(item)) for item in raw]
 
     async def add_messages(self, session_id: str, messages: list[ChatMessage]) -> None:
         key = f"chat:{session_id}"
-        await self._redis.rpush(key, *[json.dumps(message) for message in messages])
-        await self._redis.ltrim(key, -self._max_messages, -1)  # keep only the newest
-        await self._redis.expire(key, self._chat_ttl)  # session expires if unused
+        # One transaction, so two quick messages in the same session cannot interleave.
+        async with self._redis.pipeline(transaction=True) as pipe:
+            pipe.rpush(key, *[json.dumps(message) for message in messages])
+            pipe.ltrim(key, -self._max_messages, -1)  # keep only the newest
+            pipe.expire(key, self._chat_ttl)  # session expires if unused
+            await pipe.execute()
 
     # ---- booking in progress ----
     async def get_booking(self, session_id: str) -> dict[str, str]:
         """Empty dict means no booking is in progress."""
-        return await self._redis.hgetall(f"booking:{session_id}")
+        raw = await self._redis.hgetall(f"booking:{session_id}")
+        return {str(key): str(value) for key, value in raw.items()}
 
     async def save_booking(self, session_id: str, details: dict[str, str]) -> None:
         """Replace the saved booking. The 'status' field marks that one has started."""
         key = f"booking:{session_id}"
         async with self._redis.pipeline(transaction=True) as pipe:
             pipe.delete(key)
-            pipe.hset(key, mapping={"status": "collecting", **details})
+            fields: dict[Any, Any] = {"status": "collecting", **details}
+            pipe.hset(key, mapping=fields)
             pipe.expire(key, self._booking_ttl)
             await pipe.execute()
 

@@ -1,14 +1,10 @@
-from typing import Any
-
-from app.schemas import ChatMessage
 from app.services.llm import LLM
-
-Chunk = dict[str, Any]
+from app.typedefs import ChatMessage, LLMMessage, ScoredChunk
 
 NOT_FOUND = "I couldn't find that in the uploaded documents."
 
 
-def _as_turns(history: list[ChatMessage]) -> list[dict[str, str]]:
+def _as_turns(history: list[ChatMessage]) -> list[LLMMessage]:
     """Keep only role and content (stored messages also carry sources)."""
     return [{"role": m["role"], "content": m["content"]} for m in history]
 
@@ -16,7 +12,7 @@ def _as_turns(history: list[ChatMessage]) -> list[dict[str, str]]:
 async def rewrite_question(llm: LLM, question: str, history: list[ChatMessage]) -> str:
     """Turn a follow-up like 'explain the second point' into a full question."""
     chat = "\n".join(f"{m['role']}: {m['content']}" for m in history)
-    messages = [
+    messages: list[LLMMessage] = [
         {
             "role": "system",
             "content": (
@@ -30,7 +26,7 @@ async def rewrite_question(llm: LLM, question: str, history: list[ChatMessage]) 
     return await llm.chat(messages, temperature=0) or question
 
 
-def build_messages(question: str, chunks: list[Chunk], history: list[ChatMessage]) -> list[dict[str, str]]:
+def build_messages(question: str, chunks: list[ScoredChunk], history: list[ChatMessage]) -> list[LLMMessage]:
     """Prompt order: instructions + context, then recent history, then the question."""
     context = "\n\n".join(
         f"[{i}] (file: {c['source']}, page: {c['page'] or 'n/a'})\n{c['text']}"
@@ -46,7 +42,7 @@ def build_messages(question: str, chunks: list[Chunk], history: list[ChatMessage
     return [{"role": "system", "content": system}, *_as_turns(history), {"role": "user", "content": question}]
 
 
-async def generate_answer(llm: LLM, question: str, chunks: list[Chunk], history: list[ChatMessage]) -> str:
+async def generate_answer(llm: LLM, question: str, chunks: list[ScoredChunk], history: list[ChatMessage]) -> str:
     return await llm.chat(build_messages(question, chunks, history))
 
 
