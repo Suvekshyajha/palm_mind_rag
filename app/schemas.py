@@ -1,43 +1,89 @@
-from typing import Literal, NotRequired, TypedDict
+from enum import Enum
+
+from pydantic import BaseModel, Field
+
+# The typed dicts for chunks, sources and chat messages live in app/typedefs.py.
 
 
-class ChunkPayload(TypedDict):
-    """One chunk as stored in Qdrant (text + metadata)."""
+# ==========================================
+# INTENT SCHEMAS
+# ==========================================
 
-    document_id: str
-    chunk_id: str
-    chunk_index: int
-    source: str
-    page: int | None
+class Intent(str, Enum):
+    DOCUMENT_QUESTION = "document_question"
+    DOCUMENT_FOLLOW_UP = "document_follow_up"
+    INTERVIEW_BOOKING = "interview_booking"
+    BOOKING_FOLLOW_UP = "booking_follow_up"
+    GENERAL_CONVERSATION = "general_conversation"
+
+
+class IntentResult(BaseModel):
+    intent: Intent
+
+
+# ==========================================
+# BOOKING SCHEMAS
+# ==========================================
+
+class BookingStatus(str, Enum):
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+
+
+# ==========================================
+# DOCUMENT INGESTION SCHEMAS
+# ==========================================
+
+class ChunkingStrategy(str, Enum):
+    RECURSIVE = "recursive"
+    SEMANTIC = "semantic"
+
+
+class DocumentInfo(BaseModel):
+    model_config = {"from_attributes": True}
+
+    document_id: str = Field(
+        validation_alias="id",
+        serialization_alias="document_id",
+    )
+    filename: str
+    file_type: str
+    file_path: str
     chunking_strategy: str
-    text: str
+    chunk_count: int
+    page_count: int | None = None
 
 
-class ScoredChunk(ChunkPayload, total=False):
-    """A chunk after a search step. Each step adds its own score."""
+class IngestionResponse(BaseModel):
+    document_id: str
+    filename: str
+    file_type: str
+    chunking_strategy: ChunkingStrategy
+    page_count: int | None = None
+    chunk_count: int
+    processing_time_seconds: float
 
-    score: float  # dense cosine score
-    rrf_score: float  # fusion score (ordering only)
-    rerank_score: float  # cross-encoder score, 0..1
 
+# ==========================================
+# CHAT API REQUEST AND RESPONSE
+# ==========================================
 
-class SourceRef(TypedDict):
+class Source(BaseModel):
     document_id: str
     chunk_id: str
     source: str
-    page: int | None
+    page: int | None = None
 
 
-class ChatMessage(TypedDict):
-    """One chat message as stored in Redis."""
-
-    role: Literal["user", "assistant"]
-    content: str
-    sources: NotRequired[list[SourceRef]]
+class ChatRequest(BaseModel):
+    message: str = Field(min_length=1)
+    session_id: str | None = None
+    document_ids: list[str] | None = None
 
 
-class LLMMessage(TypedDict):
-    """One message sent to the LLM."""
-
-    role: Literal["system", "user", "assistant"]
-    content: str
+class ChatResponse(BaseModel):
+    session_id: str
+    reply: str
+    intent: Intent
+    sources: list[Source] = Field(default_factory=list)
+    booking_status: BookingStatus | None = None

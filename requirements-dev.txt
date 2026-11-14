@@ -1,0 +1,7 @@
+-r requirements.txt
+pytest==9.2.0
+pytest-asyncio==1.5.0
+httpx==0.28.1
+mypy==2.4.1
+easyocr==1.7.2  # only needed when ENABLE_OCR=true
+aiosqlite==0.21.0

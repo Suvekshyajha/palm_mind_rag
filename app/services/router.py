@@ -44,10 +44,6 @@ async def detect_intent(
         return Intent.BOOKING_FOLLOW_UP if in_progress else Intent.DOCUMENT_QUESTION
 
 
-def source_ref(source: Source) -> SourceRef:
-    return SourceRef(
-        document_id=source.document_id, chunk_id=source.chunk_id, source=source.source, page=source.page
-    )
 
 
 async def handle_message(
@@ -63,7 +59,7 @@ async def handle_message(
 
     intent = await detect_intent(rag.llm, body.message, history, booking_state)
 
-    sources: list[Source] = []
+    sources: list[SourceRef] = []
     booking_status: BookingStatus | None = None
     if intent in BOOKING_INTENTS:
         reply, booking_status = await handle_booking(
@@ -83,9 +79,13 @@ async def handle_message(
         session_id,
         [
             {"role": "user", "content": body.message},
-            {"role": "assistant", "content": reply, "sources": [source_ref(s) for s in sources]},
+            {"role": "assistant", "content": reply, "sources": sources},
         ],
     )
     return ChatResponse(
-        session_id=session_id, reply=reply, intent=intent, sources=sources, booking_status=booking_status
+        session_id=session_id,
+        reply=reply,
+        intent=intent,
+        sources=[Source.model_validate(s) for s in sources],
+        booking_status=booking_status,
     )

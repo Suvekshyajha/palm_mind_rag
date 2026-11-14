@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     rrf_k: int = 60
     rerank_top_k: int = 20
     final_top_k: int = 5
-    relevance_threshold: float = 0.3
+    relevance_threshold: float = 0.20
 
     # Memory
     history_messages_in_prompt: int = 6
